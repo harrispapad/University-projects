@@ -1,0 +1,56 @@
+;a
+IN 10H
+MVI A,00H 		;Store the value 00H in A
+LXI H,0900H 		;Store the value 0900H in HL
+
+START:
+	MOV M,A 	;Store the (A) to (H)(L)
+	INX H
+	INR A
+	CPI 80H 	;Check if it has reached 128, so it's greater than 127
+	JC START
+
+
+
+;b
+	LXI B,0000H ;Initialise the counter of ones
+	MVI D,00H 	;Initialise the counter of 0 to 127 t	o 0 value
+
+START2:
+	INR D 		;Increase the counter of 0 to 127
+	MOV A,D 	;Store each number we use in A
+	CPI 80H 	;Check if it has reached 128, so it's greater than 127
+	JNC ENDING
+	MVI E,08H 	;Initialize a counter for the shifts
+	JMP CHECK
+	
+CHECK:
+	DCR E 		;Check if 7 shifts have been done
+	JZ START2 	;If yes go to the next number
+	RRC 
+	JNC CHECK 	;If the LSB was not 1 then continue the shifts
+	INX B 		;Else increase the ones counter
+	JMP CHECK 	;And continue with the shifts
+
+
+
+;c
+	MVI D,00H 	;Initialize the counter
+	MVI A,00H 	;Set the first number in 0
+	CHECK2:
+	INR A 
+	CPI 80H 	;Check if it has reached 128, so it's greater than 127
+	JNC ENDING
+	CPI 10H 	;Check if greater than 10H
+	JC STOP 	;If not, do not increase and go to STOP which jumps to CHECK
+	CPI 61H 	;Check if smaller than 61H, to include 60H
+	JNC STOP 	;If not, do not increase and go to STOP which jumps to CHECK
+	INR D 		;If it passes all checks, increase counter D
+	JMP CHECK2
+	STOP:
+	JMP CHECK2
+	
+ENDING:
+	END
+
+

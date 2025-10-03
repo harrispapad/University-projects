@@ -1,0 +1,3 @@
+C:/Users/harri/Documents/University/2nd Semester/progtech/Homework/dumb/cmake-build-debug/CMakeFiles/dumb.dir
+C:/Users/harri/Documents/University/2nd Semester/progtech/Homework/dumb/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/harri/Documents/University/2nd Semester/progtech/Homework/dumb/cmake-build-debug/CMakeFiles/rebuild_cache.dir

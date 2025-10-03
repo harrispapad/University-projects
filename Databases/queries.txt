@@ -1,0 +1,278 @@
+3.1. Μέσος Όρος Αξιολογήσεων (σκορ) ανά μάγειρα και Εθνική κουζίνα.
+
+-- Ανά μάγειρα
+SELECT CONCAT(first_name, ' ', last_name) AS Name, ROUND(AVG(result), 2) AS avg_result
+FROM assignment a
+JOIN chef c on c.chef_id = a.chef_id
+GROUP BY c.chef_id
+ORDER BY avg_result DESC;
+
+-- Ανά εθνική κουζίνα
+SELECT sq.ethnicity as Cuisine, ROUND(AVG(sq.result), 2) as avg_result
+from (
+    SELECT c.ethnicity, a.result
+	FROM chef c 
+	JOIN assignment a ON c.chef_id = a.chef_id) as sq
+GROUP BY sq.ethnicity
+ORDER BY avg_result DESC;
+
++procedure GetTopRatingForChef(INT chef_id) για συγκεκριμένο σεφ
+
+-----------------------------------------------------------------------------------------------
+
+3.2. Για δεδομένη Εθνική κουζίνα και έτος, ποιοι μάγειρες ανήκουν σε αυτήν και ποιοι μάγειρες
+συμμετείχαν σε επεισόδια;
+
+SELECT 
+    'Wanted ethinicity and participated' AS TableName,
+    c.ethnicity AS c_ethnicity, 
+    c.first_name AS c_first_name, 
+    c.last_name AS c_last_name, 
+    c.year AS c_year
+FROM chef c
+WHERE c.ethnicity = 'portugal' 
+  AND c.chef_id IN (SELECT chef_id FROM assignment)
+
+UNION ALL
+
+SELECT 
+    'Wanted ethnicity and wanted year' AS TableName,
+    b.ethnicity AS b_ethnicity, 
+    b.first_name AS b_first_name, 
+    b.last_name AS b_last_name, 
+    b.year AS b_year
+FROM chef b
+WHERE b.ethnicity = 'portugal' 
+  AND b.year = 1 ;
+
+-----------------------------------------------------------------------------------------------
+
+3.3. Βρείτε τους νέους μάγειρες (ηλικία < 30 ετών) που έχουν τις περισσότερες συνταγές.
+
+SELECT CONCAT(first_name, ' ', last_name) AS Name, count(*) as recipe_count
+FROM assignment a
+JOIN chef c ON a.chef_id = c.chef_id
+WHERE c.age < 30
+GROUP BY a.chef_id;
+
+-----------------------------------------------------------------------------------------------
+
+3.4. Βρείτε τους μάγειρες που δεν έχουν συμμετάσχει ποτέ σε ως κριτές σε κάποιο επεισόδιο.
+
+select CONCAT(c.first_name, ' ', c.last_name) AS Name, judge_id
+from judge j
+join chef c on c.chef_id = j.chef_id
+where judge_id not in (
+	select judge_id
+	from episode_judge);
+
+-----------------------------------------------------------------------------------------------
+
+3.5. Ποιοι κριτές έχουν συμμετάσχει στον ίδιο αριθμό επεισοδίων σε διάστημα ενός έτους με περισσότερες από 3 εμφανίσεις;
+
+-- Για 3 δεν ειναι κανείς, οπότε για 2
+WITH yearly_appearances AS (
+    SELECT CONCAT(c.first_name, ' ', c.last_name) AS Name, COUNT(*) AS c
+    FROM episode_judge ej
+    JOIN chef c ON c.chef_id = (ej.judge_id / 10)
+    GROUP BY Name
+    HAVING COUNT(*) > 2
+)
+SELECT a.Name , b.Name, a.c as 'amount of appearances'
+FROM yearly_appearances a
+JOIN yearly_appearances b ON a.c = b.c AND a.Name <> b.Name
+ORDER BY a.c DESC, a.Name;
+
+-----------------------------------------------------------------------------------------------
+3.6. Πολλές συνταγές καλύπτουν περισσότερες από μια ετικέτες. Ανάμεσα σε ζεύγη πεδίων (π.χ.
+brunch και κρύο πιάτο) που είναι κοινά στις συνταγές, βρείτε τα 3 κορυφαία (top-3) ζεύγη που
+εμφανίστηκαν σε επεισόδια
+
+SELECT tag_pair, COUNT(*) AS pair_count
+FROM (
+    SELECT 
+        CONCAT(rt1.tag, ',', rt2.tag) AS tag_pair
+    FROM recipe_tag rt1
+    JOIN recipe_tag rt2 ON rt1.recipe_id = rt2.recipe_id
+    JOIN recipe r1 ON rt1.recipe_id = r1.recipe_id
+    JOIN recipe r2 ON rt2.recipe_id = r2.recipe_id
+    JOIN assignment a ON r1.recipe_id = a.recipe_id
+    WHERE rt1.tag < rt2.tag
+) AS tag_pairs
+GROUP BY tag_pair
+ORDER BY pair_count DESC
+LIMIT 3;
+
+force index query plan
+EXPLAIN
+SELECT tag_pair, COUNT(*) AS pair_count
+FROM (
+    SELECT 
+        CONCAT(rt1.tag, ',', rt2.tag) AS tag_pair
+    FROM recipe_tag rt1 FORCE INDEX (rt_recipe_id_index)
+    JOIN recipe_tag rt2 FORCE INDEX (rt_recipe_id_index) ON rt1.recipe_id = rt2.recipe_id
+    JOIN recipe r1 FORCE INDEX (r_recipe_id_index) ON rt1.recipe_id = r1.recipe_id
+    JOIN recipe r2 FORCE INDEX (r_recipe_id_index) ON rt2.recipe_id = r2.recipe_id
+    JOIN assignment a FORCE INDEX (idx_assignment_id) ON r1.recipe_id = a.recipe_id
+    WHERE rt1.tag < rt2.tag
+) AS tag_pairs
+GROUP BY tag_pair
+ORDER BY pair_count DESC
+LIMIT 3;
+-----------------------------------------------------------------------------------------------
+
+3.7. Βρείτε όλους τους μάγειρες που συμμετείχαν τουλάχιστον 5 λιγότερες φορές από τον μάγειρα με τις περισσότερες συμμετοχές σε επεισόδια.
+
+SELECT  CONCAT(c.first_name, ' ', c.last_name) AS Name, count(*) as times
+FROM assignment a
+JOIN chef c ON a.chef_id = c.chef_id
+GROUP BY a.chef_id
+HAVING times < (
+    SELECT MAX(times) - 5
+        FROM (
+            SELECT COUNT(*) AS times
+            FROM assignment
+            GROUP BY chef_id
+        ) AS subquery
+);
+
+-----------------------------------------------------------------------------------------------
+
+3.8. Σε ποιο επεισόδιο χρησιμοποιήθηκαν τα περισσότερα εξαρτήματα (εξοπλισμός);
+
+SELECT ep_as.episode_id, COUNT(re.equipment_name) AS total_equipment
+FROM episode_assignment ep_as
+JOIN assignment a ON ep_as.assignment_id = a.assignment_id
+JOIN recipe_equipment re ON a.recipe_id = re.recipe_id
+GROUP BY ep_as.episode_id
+ORDER BY total_equipment
+LIMIT 1;
+
+force index query plan
+EXPLAIN SELECT ep_as.episode_id, COUNT(re.equipment_name) AS total_equipment
+FROM episode_assignment ep_as
+JOIN assignment a FORCE INDEX (idx_assignment_id) ON ep_as.assignment_id = a.assignment_id
+JOIN recipe_equipment re ON a.recipe_id = re.recipe_id
+GROUP BY ep_as.episode_id
+ORDER BY total_equipment
+LIMIT 1;
+
+-----------------------------------------------------------------------------------------------
+
+3.9. Λίστα με μέσο όρο αριθμού γραμμάριων υδατανθράκων στο διαγωνισμό ανά έτος;
+
+select avg(c.carbs) as avg_carbs, b.year
+from nutritional_information c
+join assignment b ON c.recipe_id = b.recipe_id
+where b.year in (select distinct year from assignment)
+group by b.year;
+
+-----------------------------------------------------------------------------------------------
+
+3.10. Ποιες Εθνικές κουζίνες έχουν τον ίδιο αριθμό συμμετοχών σε διαγωνισμούς, σε διάστημα δύο
+συνεχόμενων ετών, με τουλάχιστον 3 συμμετοχές ετησίως
+
+SELECT distinct r1.ethnicity as 'Cuisine a', r2.ethnicity as 'Cuisine b'
+FROM recipe r1
+JOIN assignment a1 ON a1.recipe_id = r1.recipe_id
+JOIN episode_assignment ea1 ON ea1.assignment_id = a1.assignment_id
+JOIN episode e1 ON ea1.episode_id = e1.episode_id
+JOIN recipe r2 ON r1.ethnicity < r2.ethnicity
+JOIN assignment a2 ON a2.recipe_id = r2.recipe_id
+JOIN episode_assignment ea2 ON ea2.assignment_id = a2.assignment_id
+JOIN episode e2 ON ea2.episode_id = e2.episode_id
+WHERE
+    (SELECT COUNT(*)
+     FROM assignment a1
+     JOIN recipe r ON a1.recipe_id = r.recipe_id
+     WHERE r.ethnicity = r1.ethnicity) =
+    (SELECT COUNT(*)
+     FROM assignment a2
+     JOIN recipe r ON a2.recipe_id = r.recipe_id
+     WHERE r.ethnicity = r2.ethnicity)
+    AND ABS(e1.year - e2.year) = 1;
+
+-----------------------------------------------------------------------------------------------
+
+3.11. Βρείτε τους top-5 κριτές που έχουν δώσει συνολικά την υψηλότερη βαθμολόγηση σε ένα
+μάγειρα. (όνομα κριτή, όνομα μάγειρα και συνολικό σκορ βαθμολόγησης)
+
+SELECT 
+    CONCAT(j.first_name, ' ', j.last_name) AS judge, 
+    CONCAT(c.first_name, ' ', c.last_name) AS chef, 
+    total_rating
+FROM (
+    SELECT 
+        judge_id, 
+        chef_id, 
+        SUM(rating) AS total_rating,
+        ROW_NUMBER() OVER (PARTITION BY chef_id ORDER BY SUM(rating) DESC) AS rating_rank
+    FROM assignment_rating
+    GROUP BY judge_id, chef_id
+) AS ranked_ratings
+JOIN chef c ON c.chef_id = ranked_ratings.chef_id
+JOIN chef j ON j.chef_id * 10 = ranked_ratings.judge_id
+WHERE rating_rank <= 5
+ORDER BY chef, total_rating DESC;
+
+
+-----------------------------------------------------------------------------------------------
+
+3.12. Ποιο ήταν το πιο τεχνικά δύσκολο, από πλευράς συνταγών, επεισόδιο του διαγωνισμού ανά
+έτος;
+
+SELECT ep_as.episode_id, SUM(r.difficulty) AS total_difficulty
+FROM episode_assignment ep_as
+JOIN assignment a ON ep_as.assignment_id = a.assignment_id
+JOIN recipe r ON a.recipe_id = r.recipe_id
+GROUP BY ep_as.episode_id
+ORDER BY total_difficulty DESC
+LIMIT 1;
+
+
+-----------------------------------------------------------------------------------------------
+3.13. Ποιο επεισόδιο συγκέντρωσε τον χαμηλότερο βαθμό επαγγελματικής κατάρτισης (κριτές και
+μάγειρες);
+
+SELECT 
+    (SELECT SUM(j1.expertise_level) 
+     FROM chef j1
+     JOIN judge j ON j1.chef_id = j.chef_id
+     JOIN episode_judge ej ON ej.judge_id = j.judge_id
+     WHERE ej.episode_id = e.episode_id) 
+    +
+    (SELECT SUM(j2.expertise_level)
+     FROM chef j2
+     JOIN assignment a ON a.chef_id = j2.chef_id
+     JOIN episode_assignment ep ON ep.assignment_id = a.assignment_id
+     WHERE ep.episode_id = e.episode_id) as total_expertise,
+    e.episode_id
+FROM episode e
+ORDER BY total_expertise
+LIMIT 1;
+
+-----------------------------------------------------------------------------------------------
+
+3.14. Ποια θεματική ενότητα έχει εμφανιστεί τις περισσότερες φορές στο διαγωνισμό;
+
+select theme_name, count(*) as times
+from recipe
+group by theme_name
+order by count(*) desc;
+
+-----------------------------------------------------------------------------------------------
+
+3.15.
+
+SELECT fg.name as food_group_name
+FROM food_group fg
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM ingredient i
+    JOIN food_group c ON i.food_group_name = c.name
+    JOIN recipe_ingredient ri ON ri.ingredient = i.name
+    JOIN recipe r ON r.recipe_id = ri.recipe_id
+    JOIN assignment a ON r.recipe_id = a.recipe_id
+    WHERE c.name = fg.name
+);
+

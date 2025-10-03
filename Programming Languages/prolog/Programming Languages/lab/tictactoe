@@ -1,0 +1,18 @@
+
+%%===========================================================================
+%% Winning Tic-Tac-Toe configuration
+%%===========================================================================
+
+winner(L) :- L = [_, _, _], triple(L, T), is_winning_triple(T).
+
+triple(L, T) :- member(T, L).				% gets the rows
+triple(L, T) :- transpose(L, LT), member(T, LT).	% gets the columns
+triple([[A,_,_], [_,E,_], [_,_,I]], [A,E,I]).
+triple([[_,_,C], [_,E,_], [G,_,_]], [C,E,G]).
+
+transpose([[A,B,C],[D,E,F],[G,H,I]], [[A,D,G],[B,E,H],[C,F,I]]).
+
+is_winning_triple([x,x,x]).
+is_winning_triple([b,x,x]).
+is_winning_triple([x,b,x]).
+is_winning_triple([x,x,b]).

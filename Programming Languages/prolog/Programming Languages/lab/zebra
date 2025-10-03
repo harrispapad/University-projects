@@ -1,0 +1,33 @@
+/*
+** The representation we use is a structured term of the form:
+**    house(Nationality, Color, Pet, Smoke, Drink)
+*/
+
+zebra(Houses) :- 
+    Houses = [house(norwegian, _, _, _, _),
+	      house(_, blue, _, _, _),
+	      house(_,_, _, _, milk), _H4, _H5],
+    member(house(brit, red, _, _, _), Houses),
+    member(house(swede, _, dog, _, _), Houses),
+    member(house(_, green, _, _, coffee), Houses),
+    member(house(dane, _, _, _, tea), Houses),
+    rightof(house(_, green, _, _, _), house(_, white, _, _, _), Houses),
+    member(house(_, _, bird, pall_mall, _), Houses),
+    % member(house(_, yellow, _, dunhill, _), Houses),  % put in nextto below
+    nextto(house(_, _, _, blends, _), house(_, _, cat, _, _), Houses),
+    nextto(house(_, yellow, _, dunhill, _), house(_, _, horse, _, _), Houses),
+    nextto(house(_, _, _, blends, _), house(_, _, _, _, water), Houses),
+    member(house(_, _, _, blue_master, beer), Houses),
+    member(house(german, _, _, prince, _), Houses).
+
+rightof(L, R, [L,R,_,_,_]).
+rightof(L, R, [_,L,R,_,_]).
+rightof(L, R, [_,_,L,R,_]).
+rightof(L, R, [_,_,_,L,R]).
+
+nextto(H1, H2, Houses) :- rightof(H1, H2, Houses).
+nextto(H1, H2, Houses) :- rightof(H2, H1, Houses).
+
+owner_zebra(Owner) :-
+    zebra(Houses),
+    member(house(Owner, _, zebra, _, _), Houses).

@@ -1,0 +1,189 @@
+#include <stdio.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <errno.h>
+
+#define P 5
+
+int fdi;
+int fdo;
+char cw;
+char *input_file;
+char *output_file;
+int pipefds[P][2];
+
+
+void open_file();
+void search();
+void write_result();
+void close_file();
+
+void handle_sigint(int sig);
+
+void father();
+void child(int child_number);
+
+
+int main(int argc, char *argv[]){
+	if (argc != 4){
+		printf("Syntax: ./q3 'input_file' 'output_file' 'character'\n");
+		exit(1);
+	}
+	
+	input_file = argv[1];
+	output_file = argv[2];
+	cw = argv[3][0];
+
+	open_file();
+
+	for(int i = 0; i < P; i++){
+		if(pipe(pipefds[i]) == -1){
+			perror("Error during making pipe\n");
+			exit(1);
+		}
+	}
+	
+	pid_t p;
+	for(int i = 0; i < P; i++) {
+		p = fork();
+		if(p < 0) {
+			perror("Error during Fork.\n");
+			exit(1);
+		}
+		else if(p == 0) {
+			struct sigaction child_sa;
+			child_sa.sa_handler = SIG_IGN;
+			if (sigaction(SIGINT, &child_sa, NULL) == -1) {
+				perror("Error registering child signal handler");
+				exit(1);
+			}
+
+			child(i);
+			exit(0);
+		}
+	}
+	
+	struct sigaction father_sa;
+	father_sa.sa_handler = handle_sigint;
+	if (sigaction(SIGINT, &father_sa, NULL) == -1) {
+		perror("Error handling signal");
+		exit(1);
+	}
+
+	father();
+	
+	close_file();
+
+return 0;
+}
+
+
+void open_file(){
+	fdi = open(input_file, O_RDONLY);
+
+	if(fdi == -1) {
+		perror("Error opening input file.\n");
+		exit(1);
+	}
+}
+
+
+void search(int current_pipe){
+	char c;
+	char buff[1];
+	
+	ssize_t sz;
+	int counter = 0;
+
+	do {
+		sz = read(fdi, buff, 1);
+
+		if(sz == -1) {
+			perror("Error reading input file.\n");
+			exit(1);
+		}
+
+		c = buff[0];
+		if(c == cw)
+			counter++;
+	} while(sz > 0);
+	
+	if(write(current_pipe, &counter, sizeof(counter)) == -1){
+		perror("Error writing to pipe.\n");
+		exit(1);
+	}
+}
+
+
+void write_result(int total_counter) {
+	fdo = open(output_file, O_CREAT | O_RDWR | O_TRUNC, 00700);
+	if(fdo == -1) {
+		perror("Error opening output file.\n");
+		exit(1);
+	}
+
+	char buffer[70];
+	int len = snprintf(buffer, sizeof(buffer), "The character '%c' was found %d times in your file.\n", cw, total_counter);
+
+	if(write(fdo, buffer, len) == -1) {
+		perror("Error writing output file.\n");
+		exit(1);
+	}
+}
+
+
+void close_file(){
+	if(close(fdo) == -1) {
+		perror("Error closing output file.\n");
+		exit(1);
+	}
+}
+
+
+//Signal Handling
+void handle_sigint(int sig) {
+	printf("Child processes working on the file: %d\n", P);
+}
+
+
+void father() {
+	int total_counter = 0;
+	int child_counter;
+
+	for(int i = 0; i < P; i++) {
+		close(pipefds[i][1]);
+	}
+	
+        for(int i = 0; i < P; i++) {
+                if(read(pipefds[i][0], &child_counter, sizeof(child_counter)) == -1){
+                        if (errno == EINTR)
+                                continue;
+                        else {
+                                perror("Error reading from pipe.\n");
+                                exit(1);
+                        }
+                }
+
+                total_counter += child_counter;
+        }
+	
+	
+	write_result(total_counter);
+
+	sleep(2);       //check signal
+}
+
+void child(int child_number) {
+	for (int i = 0; i < P; i++) {
+		if (i != child_number)
+			close(pipefds[i][0]);
+	}
+
+	search(pipefds[child_number][1]);
+
+	close(pipefds[child_number][1]);
+}
+

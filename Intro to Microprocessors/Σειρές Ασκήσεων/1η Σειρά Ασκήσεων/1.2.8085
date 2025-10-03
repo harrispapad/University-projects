@@ -1,0 +1,80 @@
+START:					
+	IN 10H
+	LXI H,0001H			;Rightmost led
+	MOV A,L
+	CMA
+	STA 3000H	
+	MVI A,01H			;Turning on rightmost led
+
+LOOP1:
+	LXI B,FFFFH			;Delay
+	MOV E,A			;Saving the position of the last lit led
+	CALL ENABLE			;Checking if the second last LSB is on
+	LDA 2000H			;Input
+	CPI 01H			;Comparing input to 00000001B
+	JZ DIP_ON
+	JNZ DIP_OFF
+
+ENABLE:
+	LDA 2000H			;Constantly cheking input to see wheter enable changed
+	ANI 02H			;Compare input to enable-bit
+	JNZ ENABLE
+	RET				;Return to main program
+
+DIP_ON:
+	MOV A,D			;D is our loop counter
+					;For 8<= D <15 the LEDs move right.
+	CPI 0EH
+	JNC RESET_COUNTER		;For D = 15 we reset the counter
+	CPI 07H			
+	JC LEFT			;For 0<= D <7 the LEDs move left.
+	JNC RIGHT			;For 8<= D <15 the LEDs move right.
+
+DIP_OFF:
+	MOV A,E			
+	MVI L,07H
+	CALL CHECK_BIT		;With this subroutine we are aiming to get the
+					;position of the LED so in case the dip-switch
+					;switched back on we can resume our counter from that point.
+	MOV D,L
+	JMP LEFT
+
+CHECK_BIT:
+	RLC					
+	JC FOUND_BIT
+	DCR L
+	JNZ CHECK_BIT
+
+FOUND_BIT:
+	RET
+
+RESET_COUNTER:
+	MVI D,00H
+
+LEFT:
+	MOV A,E			
+	RLC				;Rotate the LED to the left
+	MOV E,A
+	JMP DELAY
+
+RIGHT:
+	MOV A,E			;Rotate the LED to the right
+	RRC
+	MOV E,A
+	JMP DELAY
+
+DELAY: 
+	DCX B
+	MOV A,B
+	ORA C
+	JNZ DELAY
+
+END:
+	MOV A,E
+	INR D				;Increment the Counter
+	CMA
+	STA 3000H
+	CMA
+	JMP LOOP1
+	END
+

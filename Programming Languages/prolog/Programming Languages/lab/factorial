@@ -1,0 +1,22 @@
+/*
+** Version of factorial with an if-then-else
+*/
+factorial1(N, F) :-
+    ( N > 0 ->
+         N1 is N-1, factorial1(N1, F1), F is F1 * N
+    ;
+         N =:= 0, F = 1
+    ).
+
+/*
+** Tail recursive version of factorial with an if-then-else
+*/
+/* factorial(+N, -F) */
+factorial2(N, F) :- factorial(N, 1, F).
+
+factorial(N, Fin, Fout) :-
+    ( N > 0 ->
+         N1 is N-1, Fnext is Fin*N, factorial(N1, Fnext, Fout)
+    ;
+         N =:= 0, Fout = Fin
+    ).

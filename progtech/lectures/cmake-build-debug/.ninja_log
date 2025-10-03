@@ -1,0 +1,14 @@
+# ninja log v5
+6	91	6818264889284565	CMakeFiles/lectures.dir/main.cpp.obj	6ae522b249f67049
+7	1839	6833798465060844	CMakeFiles/lectures.dir/container.cpp.obj	e64ef4bf58355a13
+1840	2578	6833798473647836	lectures.exe	325f2d2fa947d2b0
+3	61	6831214846648207	CMakeFiles/lectures.dir/lecture_4.0.cpp.obj	b0dea0127cb2047e
+9	90	6818259145722349	CMakeFiles/lectures.dir/Person.cpp.obj	6153a6f611ee19ba
+9	377	6823714666922774	CMakeFiles/lectures.dir/lecture_2.cpp.obj	9976e3c0d4f2729f
+3	133	6830734527821226	CMakeFiles/lectures.dir/lecture_3.cpp.obj	777d4eaad150e7c0
+3	398	6844284878974123	CMakeFiles/lectures.dir/container.cpp.obj	e64ef4bf58355a13
+399	570	6844284880668082	lectures.exe	325f2d2fa947d2b0
+3	729	6844373255670514	CMakeFiles/lectures.dir/container.cpp.obj	e64ef4bf58355a13
+730	1119	6844373259253639	lectures.exe	325f2d2fa947d2b0
+4	613	6844373443884508	CMakeFiles/lectures.dir/container.cpp.obj	e64ef4bf58355a13
+614	804	6844373445446785	lectures.exe	325f2d2fa947d2b0

@@ -1,0 +1,88 @@
+START:
+	IN 10H
+	LDA 2000H
+	MVI C,00H	
+	MOV B,A
+
+LOOP1:	
+	MOV A,C
+	CPI 00H
+	JZ AND0
+	CPI 01H
+	JZ AND1
+	CPI 02H
+	JZ XOR0
+	CPI 03H
+	JZ XOR1	
+
+AND0:
+	MOV A,B
+	ANI 01H		;B0
+	MOV D,A
+	MOV A,B
+	ANI 02H		;A0
+	RRC		;we bring A0 and B0 on the same position to compare
+	ANA D		;AND between A0 and B0
+	MOV D,A		;store the result in regiter D
+	INR C
+	JMP LOOP1
+
+AND1:
+	MOV A,B
+	ANI 04H		;B1
+	MOV E,A
+	MOV A,B		
+	ANI 08H		;A1
+	RRC		;we bring A1 and B1 on the same position to compare
+	ANA E
+	RRC		;X1 output
+	MOV E,A		;store the result in register E
+	MOV A,D		;second level OR gate comparison
+	RLC		;we bring D and E on the same position
+	ORA E		;OR between D and E
+	RRC		;move the result to output X0
+	MOV D,A		;store the result in register D
+	INR C
+	JMP LOOP1
+
+XOR0:
+	MOV A,B
+	ANI 10H		;B2
+	MOV H,A		
+	MOV A,B
+	ANI 20H		;A2
+	RRC		;we bring A2 and B2 on the same position to compare
+	XRA H
+	RRC
+	RRC		;X2 output
+	MOV H,A		;store the result in register H
+	INR C
+	JMP LOOP1
+
+XOR1:
+	MOV A,B
+	ANI 40H		;B3
+	MOV L,A
+	MOV A,B
+	ANI 80H		;A3
+	RRC		;we bring A3 and B3 on the same position to compare
+	XRA L
+	RRC
+	RRC
+	RRC		;X3 output
+	MOV L,A		;store the result in register L
+	MOV A,H		;second level XOR comparison
+	RLC		;we bring H and L on the same position
+	ORA L		;OR between H and L
+	RRC		;move the result to output X2
+	MOV H,A		;store the result in register H
+
+END:
+	MOV A,D
+	ORA E
+	ORA H
+	ORA L
+	CMA
+	STA 3000H
+	JMP START
+	END

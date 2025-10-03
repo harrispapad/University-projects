@@ -1,0 +1,3 @@
+C:/Users/harri/Documents/University/progintro/Homework/C - Lion/sumofpow/cmake-build-debug/CMakeFiles/sumofpow.dir
+C:/Users/harri/Documents/University/progintro/Homework/C - Lion/sumofpow/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/harri/Documents/University/progintro/Homework/C - Lion/sumofpow/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,273 @@
+IN 10H
+LOOP1:
+MVI A,10H
+LXI D,0B00H 		;I create 4 empty spaces, beacuse i only
+STA 0B00H   		;want to show 2 numbers
+STA 0B01H
+STA 0B02H
+STA 0B03H 
+
+MVI A,FEH 		;The 0 line has code 11111110
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 INSTR STEP
+JZ INSTR_STEP 
+CPI 05H 		;If 101 FETCH PC
+JZ FETCH_PC 
+
+MVI A,FDH 		;The 1 line has code 11111101
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 RUN
+JZ RUNS
+CPI 05H 		;If 101 FETCH REG
+JZ FETCH_REG
+CPI 03H 		;If 011 FETCH ADDRS
+JZ FETCH_ADDRS
+
+MVI A,FBH		 ;The 2 line has code 11111011
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 ZERO
+JZ ZERO
+CPI 05H 		;If 101 STORE/INCR
+JZ STORE_INCR
+CPI 03H		 ;if 011 DECR
+JZ DECR
+
+MVI A,F7H		 ;The 3 line has code 11110111
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 ONE
+JZ ONE
+CPI 05H		;If 101 TWO
+JZ TWO
+CPI 03H 		;If 011 THREE
+JZ THREE
+
+MVI A,EFH 		; The 4 line has code 11101111
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 FOUR
+JZ FOUR
+CPI 05H 		;If 101 FIVE
+JZ FIVE
+CPI 03H 		;If 011 SIX
+JZ SIX
+
+MVI A,DFH 		;The 5 line has code 11011111
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 SEVEN
+JZ SEVEN
+CPI 05H		;If 101 EIGHT
+JZ EIGHT
+CPI 03H 		;If 011 NINE
+JZ NINE
+
+MVI A,BFH 		;The 6 line has code 10111111
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H 		;If 110 A
+JZ BUT_A
+CPI 05H 		;If 101 B
+JZ BUT_B
+CPI 03H 		;If 011 C
+JZ BUT_C
+
+MVI A,7FH 		;The 7 line has code 01111111
+STA 2800H
+LDA 1800H
+ANI 07H 		;I want to keep the last 3 digits
+CPI 06H		;If 110 D
+JZ BUT_D
+CPI 05H 		;If 101 E
+JZ BUT_E
+CPI 03H		;If 011 F
+JZ BUT_F
+JMP LOOP1
+
+INSTR_STEP:
+	MVI A,06H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+FETCH_PC:
+	MVI A,05H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+RUNS:
+	MVI A,04H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+FETCH_REG:
+	MVI A,00H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+FETCH_ADDRS:
+	MVI A,02H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+ZERO:
+	MVI A,00H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	STA 0B05H 		;We then store in the next position the second
+          		;digit of the 2 digits number
+	JMP ENDING
+
+STORE_INCR:
+	MVI A,03H		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+DECR:
+	MVI A,01H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,08H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+ONE:
+	MVI A,01H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H
+	JMP ENDING
+
+TWO:
+	MVI A,02H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+THREE:
+	MVI A,03H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+FOUR:
+	MVI A,04H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+FIVE:
+	MVI A,05H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H		;We then store in the next position the second
+	STA 0B05H		;digit of the 2 digits number
+	JMP ENDING
+
+SIX:
+	MVI A,06H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+SEVEN:
+	MVI A,07H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+EIGHT:
+	MVI A,08H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+NINE:
+	MVI A,09H 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+BUT_A:
+	MVI A,0AH 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+BUT_B:
+	MVI A,0BH 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number	
+	JMP ENDING
+
+BUT_C:
+	MVI A,0CH 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+BUT_D:
+	MVI A,0DH 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+BUT_E:
+	MVI A,0EH 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+BUT_F:
+	MVI A,0FH 		;We first store the last digit of the 2 digits number
+	STA 0B04H
+	MVI A,00H 		;We then store in the next position the second
+	STA 0B05H 		;digit of the 2 digits number
+	JMP ENDING
+
+ENDING:
+	CALL STDM 		;We portray the number we want in
+	CALL DCD  		;the screen above the keyboard
+	JMP LOOP1
+	END
+
+
+
+
+
+
+
+
+
+
+

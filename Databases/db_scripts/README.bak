@@ -1,0 +1,11 @@
+Τα τρέξαμε σε περιβάλλον debian ubuntu:
+
+1) sudo apt install python3-mysql.connector
+
+2) Εκτελούμε με python3 _.py με την εξής σειρά τα αρχεία
+  i) create_assignments
+  ii) create_episode_assignment
+  iii) create_episode judge
+  iv) assignment_rating
+
+3) Εκτελούμε εντός της ΒΔ το procedure calculate_assignment_rating ώστε να συμπληρωθεί και το τελευταίο field του πίνακα assignment

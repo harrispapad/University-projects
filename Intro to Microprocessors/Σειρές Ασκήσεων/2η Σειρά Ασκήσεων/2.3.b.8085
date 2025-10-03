@@ -1,0 +1,32 @@
+LOOP1:
+	CALL KIND
+	CPI 00H 	;If 0, go to ending1
+	JZ ENDING1
+	CPI 09H
+	JZ ENDING1 	;If 9, go to ending1
+	MOV B,A 	;Load in B the given number A
+	MVI A,01H
+	DCR B
+	JZ NUM1 	;If B-1 is 0, then the given number is 1
+
+MAKE:
+	DCR B 		;Decrease B till it reaches 0, so i have made all the
+	JZ ENDING2 	;necessary shifts
+	RLC 		;Move left and add 1, so i create  
+	ADI 01H	;my number in a form 00111
+	JMP MAKE
+
+NUM1:
+	MVI A,00H 	;If given number is 1, turn on all leds
+	JMP ENDING2
+
+ENDING1:
+	MVI A,00H 	;For 0 or 9 turn off all leds
+	CMA
+	STA 3000H
+	JMP LOOP1
+
+ENDING2:
+	STA 3000H
+	JMP LOOP1
+	END

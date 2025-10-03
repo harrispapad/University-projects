@@ -1,0 +1,47 @@
+% Predicate to find the maximum value within a tree
+max_data(n(Data, List), Max) :-
+    % Delegates the task of finding the maximum value within the list of child nodes to max_list/3 predicate
+    max_list(List, Data, Max).
+
+% Predicate to find the maximum value within a list of nodes
+max_list([], Max, Max).  % Base case: When the list is empty, return the current maximum value.
+max_list([n(D,L)|Tail], CurrentM, Max) :-
+    % Update the current maximum value (CurrentM) by taking the maximum of the current node's value (D) and CurrentM
+    NewCurrentM is max(D, CurrentM),
+    % Recursively find the maximum value in the list of child nodes (L)
+    max_list(L, NewCurrentM, ML),
+    % Recursively find the maximum value in the remaining nodes (Tail)
+    max_list(Tail, ML, Max).
+
+% Predicate to find the depth of a node with a given value within a tree
+find_depth(n(Data, _), Data, 1). % Base case: When the current node's value matches the target value, depth is 1.
+find_depth(n(_, List), Data, Depth) :-
+    % Recursively search for the target value within the list of child nodes
+    member(Elem, List),             % Select a node from the list
+    find_depth(Elem, Data, ElemDepth), % Recursively find the depth of the selected node with the target value
+    Depth is ElemDepth + 1.         % Increment the depth by 1
+
+% Tests
+
+% Test predicate to find the maximum value in a tree
+test_max(Max) :-
+    % Obtain a tree structure
+    tree(Tree),
+    % Find the maximum value in the tree
+    max_data(Tree, Max).
+
+% Test predicate to find the depth of a value in a tree
+test_depth(Data, Depth) :-
+    % Obtain a tree structure
+    tree(Tree),
+    % Find the depth of the given value in the tree
+    find_depth(Tree, Data, Depth).
+
+% Definition of tree structures for testing
+tree(n(8, [n(4, [n(6, [n(1, [])]), n(3, [n(2, [])])]),
+           n(5, [n(4, []), n(1, [])]),
+           n(9, [n(5, [n(0, []), n(4, [])]), n(7, [n(2, [])])])])).
+% Uncomment the line below to test with another tree structure
+tree(n(1,[n(2,[n(17,[]),n(42,[])]),n(4,[n(5,[])])])).
+
+

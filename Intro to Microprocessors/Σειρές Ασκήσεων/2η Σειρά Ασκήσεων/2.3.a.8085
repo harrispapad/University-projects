@@ -1,0 +1,29 @@
+LOOP1:
+	MVI B,00H 	;Initialise the counter of shifts
+	MVI C,09H 	;Initialise another counter to find if the input is 0
+	LDA 2000H 
+START:
+	INR B 		;For each shift, we increase our counter
+	DCR C 		;We decrease the initialised to 9 counter and check if it has become 0
+	JZ ENDING1 	;If yes, A=0 and we go to ending1
+	RRC 		;We make a right shift till we find 1
+	JNC START 	;If we dont find 1, loop
+FOUND1:
+	MVI A,01H
+	DCR B 		;We want to store 2^(B-1)
+MAKE:
+	RLC 		;We move A left till we reach the desirable bit position
+	DCR B 		;We decrease the shift counter for each left shift
+	JNZ MAKE 	;If the shifts counter doesnt reach 0, loop
+	JMP ENDING2 	;If we find 1, got to ending2
+ENDING1:
+	MVI A,00H
+	CMA
+	STA 3000H
+	JMP LOOP1 	;The program doesnt stop
+
+ENDING2:
+	CMA
+	STA 3000H
+	JMP LOOP1
+	END

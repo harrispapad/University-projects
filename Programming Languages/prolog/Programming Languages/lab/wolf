@@ -1,0 +1,54 @@
+% Initial and final configurations
+initial(config(w, w, w, w)).
+final(config(e, e, e, e)).
+
+
+
+% Define the concept of "opposite" for the shores of the river
+opposite(w, e).
+opposite(e, w).
+
+
+
+% Define the possible moves and resulting configurations
+move(config(Coast, Coast, G, C), wolf, config(OppCoast, OppCoast, G, C)) :-
+        opposite(Coast, OppCoast).
+move(config(Coast, W, Coast, C), goat, config(OppCoast, W, OppCoast, C)) :-
+        opposite(Coast, OppCoast).
+move(config(Coast, W, G, Coast), cabbage, config(OppCoast, W, G, OppCoast)) :-
+        opposite(Coast, OppCoast).
+move(config(Coast, W, G, C), nothing, config(OppCoast, W, G, C)) :-
+        opposite(Coast, OppCoast).
+
+
+
+% Define when entities are together or separated
+together_or_separated(Coast, Coast, Coast).             % together
+together_or_separated(_, Coast1, Coast2) :-
+        opposite(Coast1, Coast2).
+
+
+
+% Define safe states where no rules are violated
+safe(config(Man, Wolf, Goat, Cabbage)) :-
+        together_or_separated(Man, Wolf, Goat),
+        together_or_separated(Man, Goat, Cabbage).
+
+
+
+% Define the solving process
+solve(Conf, []) :- final(Conf). 	% Base case: final configuration reached
+solve(Conf, [Move|Moves]) :-
+        move(Conf, Move, Conf1), 	% Apply a valid move
+        safe(Conf1),              	% Check if the resulting configuration is safe
+        solve(Conf1, Moves).    	% Recursively solve for the next configuration
+
+
+
+% Top-level predicate to initiate the solving process
+solve(Moves) :-
+        initial(InitialConf),  		% Get the initial configuration
+        safe(InitialConf),      	% Ensure the initial configuration is safe
+        length(Moves, _),       	% Ensure minimum steps (BFS instead of DFS).
+        				%basically create all lists and start passing them
+	solve(InitialConf, Moves). 	% Initiate the solving process

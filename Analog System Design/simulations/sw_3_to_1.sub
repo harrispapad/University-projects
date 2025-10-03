@@ -1,0 +1,28 @@
+* Source File: none
+* Developer: ETech (eetech00@yahoo.com)
+* Created: Apr 25 2018
+* Revision: NA
+*
+* This 3 Position Selector Switch spice model has
+* been tested with LTSpice. Temperature is not modeled.
+*
+* 3 to 1 switch with selection
+* sel=0  selects none
+* sel=1  selects input 1 (Default)
+* sel=1  selects input 2
+* sel=3  selects input 3
+*
+.subckt SW_3_to_1 1 2 3
++ out
++ params: sel=1
+*
+XS1 1 out stepper sel=If({sel}==1,{sel},0)
+XS2 2 out stepper sel=If({sel}==2,{sel},0)
+XS3 3 out stepper sel=If({sel}==3,{sel},0)
+.ends SW_3_to_1
+
+.subckt stepper 1 2 params: sel=0 n=0.5
+S1 1 2 nc+ 0 SW
+B1 0 nc+ I=IF(!{sel}==0 & {sel}>{sel-n} & {sel}<{sel+n}, 1, 0) Rpar=1 Cpar=1n
+.model SW SW(Ron=1e-3 Roff=1e9 Vt=0.5 Vh=-0.49)
+.ends stepper

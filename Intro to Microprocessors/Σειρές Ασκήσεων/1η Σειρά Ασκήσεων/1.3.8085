@@ -1,0 +1,39 @@
+START:
+	LDA 2000H
+	MVI B,FFH	;Store -1 to B
+
+HUND:
+	CPI C7H	;Check if greater than 199
+	JNC LEDS	;If yes go to loop LEDS
+	CPI 64H	;Check if greater than 100
+	JC DECA	;If not go to DECA
+	SUI 64H	;If yes subtract 100
+
+DECA:
+	INR B		;Increase the counter of tens
+	SUI 0AH	;Subtract 10
+	JNC DECA	;If positive again loop
+	ADI 0AH	;If negative add 10
+	MOV C,A	;Store the ones in C
+
+SUM:
+	MOV A,B	;Store the tens in A
+	RLC
+	RLC
+	RLC
+	RLC		;Create 2^4
+	ADD C		;Make of the final number with tens and ones
+	CMA
+	STA 3000H
+	JMP RESTART
+
+LEDS:
+	MVI A,00H	;Turn on all LEDs
+	STA 3000H
+	JMP RESTART
+
+RESTART:
+	RST 1
+	JMP START
+
+END

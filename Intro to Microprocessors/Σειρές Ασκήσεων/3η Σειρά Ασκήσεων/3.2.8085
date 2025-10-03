@@ -1,0 +1,62 @@
+MVI C,28H
+MVI D,46H
+MVI E,64H
+
+MVI A,10H ;We empty the screen
+STA 0B00H
+STA 0B01H
+STA 0B02H
+STA 0B03H
+STA 0B04H
+STA 0B05H
+MVI A,0DH ;We allow the RST6.5
+SIM
+EI
+WAIT: ;The main program makes a non ending loop
+ JMP WAIT 
+
+INTR_ROUTINE:
+ CALL KIND
+ MOV B,A ;Store the first hex digit, which we have assumed
+         ;symbolizes the units
+ STA 0B02H ;Show in the middle display
+ CALL KIND
+ STA 0B03H
+ RLC
+ RLC
+ RLC 
+ RLC
+ ADD B ;Add the units to the tens
+ MOV B,A
+ PUSH D ;temporarily save D and E
+ LXI D,0B00H ;address for STDM
+ CALL STDM
+ CALL DCD
+ POP D ;restore D and E
+ MOV A,B
+ CMP C
+ JC LED0 ;K1
+ CMP D
+ JC LED1 ;K2
+ CMP E
+ JC LED2 ;K3
+ JMP LED3 ;Else go to the final range
+LED0:
+ MVI A,FEH
+ JMP ENDING
+LED1:
+ MVI A,FDH
+ JMP ENDING
+LED2:
+ MVI A,FBH
+ JMP ENDING
+LED3:
+ MVI A,F7H
+ JMP ENDING
+ENDING:
+ STA 3000H ;Turn on the proper led
+ EI
+ JMP WAIT
+ END
+ 
+ 

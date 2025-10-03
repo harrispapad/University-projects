@@ -1,0 +1,103 @@
+START:
+	IN 10H
+	LXI D,FFFFH		;set delay 
+	MVI L,06H		;multiply delay by L
+;for 20 seconds L=16H and program virtual delay cursor at 2nd position
+
+INPUT:
+	LDA 2000H		;first input
+
+PUSH_BUTTON:
+	ANI 01H		;check LSB
+	JNZ HIGH		
+
+LOW:				;LSB 0 subroutine
+	MOV A,C		;check counter
+	CPI 02H		;if counter=2 that means the previous state was HIGH
+	JZ LIGHTS_ON		
+	JNZ LOOP_LOW
+
+LOOP_LOW:			;stay here while LSB doesn't change from 0
+	LDA 2000H
+	CPI 01H		
+	JNZ LOOP_LOW
+	INR C
+	JMP HIGH
+
+HIGH:
+	MOV A,C
+	CPI 00H		;in case the first state was LSB=1. avoid tunging on the_ 
+	JZ INPUT		;_lights after just HIGH-LOW sequence
+	CPI 01H		;if counter=1 that means the previous state was LOW
+	JNZ LOOP_HIGH
+
+LOOP_HIGH:			;stay here while LSB doesn't change from 1
+	LDA 2000H
+	CPI 01H		
+	JZ LOOP_HIGH
+	INR C
+	JMP LOW
+
+LIGHTS_ON:
+	MVI A,FFH
+	CMA
+	STA 3000H
+	MVI C,00H		;reset the counter for future inputs
+	JMP DELAY
+
+DELAY: 
+	DCR L
+	JNZ SUBDELAY
+	JMP END1
+
+SUBDELAY:
+	CALL CHECK_INPUT	;keep checking for PUSH sequence
+	DCX D
+	MOV A,D
+	ORA E
+	JNZ SUBDELAY
+	JMP DELAY
+
+CHECK_INPUT:
+	LDA 2000H
+	CPI 00H		
+	JZ LOW2
+	JNZ HIGH2
+
+;same logic as before but now we need to return to the delay since we need to keep 
+;counting down inbetween possible inputs.
+
+HIGH2:
+	MOV A,C
+	CPI 01H		;if counter=1 that means the previous state was LOW	
+	JZ HELP_HIGH2
+	RET
+
+HELP_HIGH2:
+	INR C
+	RET
+
+LOW2:
+	MOV A,C
+	CPI 00H		;if counter=0 that means the previous state was LOW
+	JZ HELP_LOW2
+	CPI 02H		;if counter=2 that means the previous state was HIGH
+	JZ REFRESH_DELAY
+	RET
+
+HELP_LOW2:
+	INR C
+	RET
+
+REFRESH_DELAY:
+	LXI D,FFFFH
+	MVI L,16H
+	MVI C,00H
+	JMP DELAY
+
+END1:
+	MVI A,00H
+	CMA
+	STA 3000H		;turn off the lights
+	END
+	

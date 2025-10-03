@@ -1,0 +1,17 @@
+parser/parser.output
+*.o
+parser/dc
+lexer.c
+parser.c
+parser.h
+.vscode/*
+*.s
+*.ll
+*.log
+llvm/examples_final
+examples/error_outputs/*
+examples/executables/*
+*mylog.txt
+*.asm
+*.imm
+*a.out
