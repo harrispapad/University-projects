@@ -93,7 +93,7 @@ Deep learning implementations in Python/Jupyter: Wide Residual Networks, neural 
 ## 🛠️ Technologies & Tools
 
 - **Languages**: C, C++, Java, Python, Standard ML, Prolog, VHDL, Assembly (8085, AVR, PIC18), JavaScript, SQL
-- **Hardware Design**: Xilinx Vivado, LTspice, KiCad, Logisim, AutoCAD
+- **Hardware Design**: Xilinx Vivado, LTspice, KiCad, Logisim, AutoCAD, Logisim
 - **Development Tools**: Intel Pin, MPLAB X, Atmel Studio, MySQL Workbench
 - **Frameworks**: Express.js, Node.js, LLVM, PyTorch/TensorFlow
 - **Version Control**: Git
